@@ -28,19 +28,14 @@ public class Connector {
 						Socket s = serverSocket.accept();
 						if (s.isConnected()) {
 							System.out.println("Client connected... " + s.getInetAddress() + ":" + s.getPort());
-							new Thread(new Runnable() {
-								public void run() {
 
-									while (s.isConnected()) {
-										try {
-											manageClient(s);
-										} catch (IOException e) {
-											// TODO Auto-generated catch block
-											e.printStackTrace();
-										}
-									}
-								}
-							}).start();
+							try {
+								manageClient(s);
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+
 						}
 					}
 				} catch (IOException e) {
