@@ -5,6 +5,10 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.tools.Tool;
+
+import actions.Tools;
+
 public class Connector {
 	public static final int PORT = 9797;
 	private static ServerSocket serverSocket;
@@ -52,11 +56,13 @@ public class Connector {
 	}
 
 	public static void main(String[] args) {
-		try {
-			Connector.getInstance().awaitClients();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			Connector.getInstance().awaitClients();
+			System.out.println(Tools.listFiles("C:\\Users\\BrunoYujiIshiyama\\Desktop"));
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 	}
 }
