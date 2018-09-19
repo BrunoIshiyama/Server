@@ -56,13 +56,14 @@ public class Connector {
 	}
 
 	public static void main(String[] args) {
-//		try {
+		try {
 //			Connector.getInstance().awaitClients();
-			System.out.println(Tools.listFiles("C:\\Users\\BrunoYujiIshiyama\\Desktop"));
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		Tools t = new Tools();
+			System.out.println(t.readFileContent("C:\\Users\\BrunoYujiIshiyama\\Desktop\\prod_info.csv"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 }

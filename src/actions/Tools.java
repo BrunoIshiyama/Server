@@ -1,12 +1,52 @@
 package actions;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.Scanner;
 
 public class Tools {
-
-	public static String createFolder(String path) {
+	private String currentPath;
+	public static final int HISTORY_SIZE = 80;
+	private String[] commandHistory = new String[HISTORY_SIZE];
+	private int historyPos = 0;
+	
+	public Tools() {
+//		try {
+//			Process proc = Runtime.getRuntime().exec("/bin/bash -c cd ~; pwd");
+//			String output = readStream(proc.getOutputStream());
+//			currentPath = output;
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+	}
+	public String readStream(OutputStream os) {
+		String s = null;
+		byte[] bytes = new byte[1024];
+		
+		try {
+			os.write(bytes);
+			os.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		s = new String(bytes);
+		return s;
+	}
+	public void setCurrentPath(String newPath) {
+		currentPath = newPath;
+	}
+	public String getCurrentPath() {
+		return currentPath;
+	}
+	public void saveToHistory(String command) {
+		commandHistory[historyPos=((historyPos+1)%HISTORY_SIZE)] = command;
+	}
+	public String createFolder(String path) {
 		File f = new File(path);
 		if (f.mkdirs()) {
 			return "Folder created : " + f.getName();
@@ -14,7 +54,7 @@ public class Tools {
 		return "Could not create folder.\nPath received: " + path;
 	}
 
-	public static String createFile(String path) throws IOException {
+	public String createFile(String path) throws IOException {
 		File f = new File(path);
 		if (f.createNewFile()) {
 			return "File created at: " + path;
@@ -22,14 +62,14 @@ public class Tools {
 		return "The file " + path + " already exists.";
 	}
 
-	public static String removeFile(String path) throws IOException {
+	public String removeFile(String path) throws IOException {
 		File f = new File(path);
 		String ans = f.getName();
 		Files.delete(f.toPath());
 		return "Removed: " + ans;
 	}
 
-	public static String removeRecursively(String path) throws IOException {
+	public String removeRecursively(String path) throws IOException {
 		File f = new File(path);
 		File[] files = f.listFiles();
 		StringBuilder sb = new StringBuilder();
@@ -41,7 +81,7 @@ public class Tools {
 		}
 		return sb.toString();
 	}
-	public static String listFiles(String path) {
+	public String listFiles(String path) {
 		File f = new File(path);
 		File[] files = f.listFiles();
 		StringBuilder sb = new StringBuilder();
@@ -50,34 +90,61 @@ public class Tools {
 		}
 		return sb.toString();
 	}
-	public static String changeDir(String path) {
+	public String readFileContent(String path) throws FileNotFoundException {
+		Scanner sc = new Scanner(new File(path));
+		StringBuilder sb = new StringBuilder();
+		while(sc.hasNext()) {
+			sb.append(sc.nextLine()+"\n");
+		}
+		sc.close();
+		return sb.toString();
+	}
+	public String changeDir(String path) {
 		return null;
 	}
-	public static String moveFile(String src,String target) {
+	public String moveFile(String src,String target) {
 		return null;
 	}
-	public static String copy(String from,String destination) {
+	public String copy(String from,String destination) {
 		return null;
 	}
-	public static String printWorkDir() {
+	public String printWorkDir() {
+		return getCurrentPath();
+	}
+	public String install(String program) {
 		return null;
 	}
-	public static String install(String program) {
+	public String uninstall(String program) {
 		return null;
 	}
-	public static String uninstall(String program) {
-		return null;
-	}
-	public static String shutdown() {
+	public String shutdown() {
 		return "Closing connection";
 	}
-	public static String execute(String program) {
+	public String execute(String program) throws IOException {
+		Process proc = Runtime.getRuntime().exec("/bin/bash -c "+program);
+		String output = readStream(proc.getOutputStream());
+		currentPath = output;
+		StringBuilder sb = new StringBuilder();
+		sb.append("Executing "+program+"\n");
+		sb.append(output);
+		return sb.toString();
+	}
+	public String help() {
 		return null;
 	}
-	public static String help() {
-		return null;
-	}
-	public static String history() {
-		return null;
+	public String history() {
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		int checkPosition = historyPos;
+		while(i<HISTORY_SIZE) {
+			if(historyPos-i<0) {
+				checkPosition = historyPos-i + HISTORY_SIZE;
+			}else {
+				checkPosition = historyPos-i;
+			}
+			i++;
+			sb.append(i+"-"+commandHistory[checkPosition]+"\n");
+		}
+		return sb.toString();
 	}
 }
