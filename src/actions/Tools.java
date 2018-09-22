@@ -12,7 +12,7 @@ public class Tools {
 	public static final int HISTORY_SIZE = 80;
 	private String[] commandHistory = new String[HISTORY_SIZE];
 	private int historyPos = 0;
-	
+	//TODO save history over the commands
 	public Tools() {
 //		try {
 //			Process proc = Runtime.getRuntime().exec("/bin/bash -c cd ~; pwd");
