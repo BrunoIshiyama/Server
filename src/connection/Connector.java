@@ -52,18 +52,52 @@ public class Connector {
 		InputStream input = s.getInputStream();
 		byte[] info = new byte[input.available()];
 		input.read(info);
-		System.out.println(new String(info));
+		String[] command = new String(info).split(" ");
+		switch (command[0]) {
+			case "history":
+				break;
+			case "help":
+				break;
+			case "exec":
+				break;
+			case "shut":
+				break;
+			case "uninstall":
+				break;
+			case "pwd":
+				break;
+			case "mv":
+				break;
+			case "cp":
+				break;
+			case "cd":
+				break;
+			case "cat":
+				break;
+			case "install":
+				break;
+			case "ls":
+				break;
+			case "rm":
+				break;
+			case "touch":
+				break;
+			case "mkdir":
+				break;
+			default:
+				break;
+		}
 	}
 
 	public static void main(String[] args) {
-		try {
+//		try {
 //			Connector.getInstance().awaitClients();
 		Tools t = new Tools();
-			System.out.println(t.readFileContent("C:\\Users\\BrunoYujiIshiyama\\Desktop\\prod_info.csv"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		System.out.println(t.listFiles("C:\\Users\\BrunoYujiIshiyama\\Desktop"));
+//		} catch (IOException e) {
+		// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
 	}
 }

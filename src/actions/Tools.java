@@ -1,9 +1,14 @@
 package actions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Scanner;
 
@@ -46,6 +51,7 @@ public class Tools {
 	public void saveToHistory(String command) {
 		commandHistory[historyPos=((historyPos+1)%HISTORY_SIZE)] = command;
 	}
+	// mkdir
 	public String createFolder(String path) {
 		File f = new File(path);
 		if (f.mkdirs()) {
@@ -53,7 +59,8 @@ public class Tools {
 		}
 		return "Could not create folder.\nPath received: " + path;
 	}
-
+	
+	// touch
 	public String createFile(String path) throws IOException {
 		File f = new File(path);
 		if (f.createNewFile()) {
@@ -61,14 +68,14 @@ public class Tools {
 		}
 		return "The file " + path + " already exists.";
 	}
-
+	// rm
 	public String removeFile(String path) throws IOException {
 		File f = new File(path);
 		String ans = f.getName();
 		Files.delete(f.toPath());
 		return "Removed: " + ans;
 	}
-
+	// rm -r
 	public String removeRecursively(String path) throws IOException {
 		File f = new File(path);
 		File[] files = f.listFiles();
@@ -81,6 +88,7 @@ public class Tools {
 		}
 		return sb.toString();
 	}
+	// ls
 	public String listFiles(String path) {
 		File f = new File(path);
 		File[] files = f.listFiles();
@@ -90,6 +98,7 @@ public class Tools {
 		}
 		return sb.toString();
 	}
+	//cat
 	public String readFileContent(String path) throws FileNotFoundException {
 		Scanner sc = new Scanner(new File(path));
 		StringBuilder sb = new StringBuilder();
@@ -99,27 +108,48 @@ public class Tools {
 		sc.close();
 		return sb.toString();
 	}
+	//cd
 	public String changeDir(String path) {
+		currentPath = path;
+		return path;
+	}
+	//mv
+	public String moveFile(String src,String target) throws IOException {
+		copy(src, target);
+		Files.delete(new File(src).toPath());
 		return null;
 	}
-	public String moveFile(String src,String target) {
-		return null;
+	//cp
+	public String copy(String from,String destination) throws IOException {
+		File f = new File(destination);
+		f.createNewFile();
+		File source = new File(from);
+		System.setOut(new PrintStream(f));
+		Scanner sc = new Scanner(new FileInputStream(source));
+		while(sc.hasNext()) {
+			System.out.println(sc.nextLine());
+		}
+		System.setOut(System.out);
+		sc.close();
+		return "File Copied";
 	}
-	public String copy(String from,String destination) {
-		return null;
-	}
+	// pwd
 	public String printWorkDir() {
 		return getCurrentPath();
 	}
+	// install
 	public String install(String program) {
 		return null;
 	}
+	// uninstall
 	public String uninstall(String program) {
 		return null;
 	}
+	// shut
 	public String shutdown() {
 		return "Closing connection";
 	}
+	//exec
 	public String execute(String program) throws IOException {
 		Process proc = Runtime.getRuntime().exec("/bin/bash -c "+program);
 		String output = readStream(proc.getOutputStream());
@@ -129,9 +159,11 @@ public class Tools {
 		sb.append(output);
 		return sb.toString();
 	}
+	// help
 	public String help() {
 		return null;
 	}
+	// history
 	public String history() {
 		StringBuilder sb = new StringBuilder();
 		int i = 0;
