@@ -48,8 +48,12 @@ public class Tools {
 	public String getCurrentPath() {
 		return currentPath;
 	}
-	public void saveToHistory(String command) {
-		commandHistory[historyPos=((historyPos+1)%HISTORY_SIZE)] = command;
+	public void saveToHistory(String...command) {
+		StringBuilder result = new StringBuilder();
+		for(String s : command) {
+			result.append(s+" ");
+		}
+		commandHistory[historyPos=((historyPos+1)%HISTORY_SIZE)] = result.toString().trim();
 	}
 	// mkdir
 	public String createFolder(String path) {
@@ -175,7 +179,12 @@ public class Tools {
 				checkPosition = historyPos-i;
 			}
 			i++;
-			sb.append(i+"-"+commandHistory[checkPosition]+"\n");
+			String currentCommand = commandHistory[checkPosition];
+			if(currentCommand == null || currentCommand.isEmpty() || currentCommand.equals("null")) {
+				i++;
+				continue;
+			}
+			sb.append(i+"-"+currentCommand+"\n");
 		}
 		return sb.toString();
 	}

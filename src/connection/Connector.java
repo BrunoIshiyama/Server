@@ -2,10 +2,9 @@ package connection;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-
-import javax.tools.Tool;
 
 import actions.Tools;
 
@@ -25,6 +24,7 @@ public class Connector {
 	}
 
 	public void awaitClients() {
+		System.out.println("Awaiting Clients...");
 		new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -49,40 +49,64 @@ public class Connector {
 	}
 
 	public void manageClient(Socket s) throws IOException {
+		System.out.println("Managing  Client\'s requests");
+		
 		InputStream input = s.getInputStream();
 		byte[] info = new byte[input.available()];
 		input.read(info);
+		Tools t = new Tools();
 		String[] command = new String(info).split(" ");
+		System.out.println("message;"+command[0]);
 		switch (command[0]) {
 			case "history":
+				System.out.println("HISTORY");
+				t.saveToHistory(command);
+				String result = t.history();
+				OutputStream os = s.getOutputStream();
+				os.write(result.getBytes());
+				os.flush();
 				break;
 			case "help":
+				t.saveToHistory(command);
 				break;
 			case "exec":
+				t.saveToHistory(command);
 				break;
 			case "shut":
+				t.saveToHistory(command);
 				break;
 			case "uninstall":
+				t.saveToHistory(command);
 				break;
 			case "pwd":
+				t.saveToHistory(command);
 				break;
 			case "mv":
+				t.saveToHistory(command);
 				break;
 			case "cp":
+				t.saveToHistory(command);
 				break;
 			case "cd":
+				t.saveToHistory(command);
 				break;
 			case "cat":
+				t.saveToHistory(command);
 				break;
 			case "install":
+				t.saveToHistory(command);
 				break;
 			case "ls":
+				t.saveToHistory(command);
 				break;
 			case "rm":
+				t.saveToHistory(command);
 				break;
 			case "touch":
+				t.saveToHistory(command);
 				break;
 			case "mkdir":
+				t.saveToHistory(command);
 				break;
 			default:
 				break;
@@ -90,14 +114,12 @@ public class Connector {
 	}
 
 	public static void main(String[] args) {
-//		try {
-//			Connector.getInstance().awaitClients();
-		Tools t = new Tools();
-		System.out.println(t.listFiles("C:\\Users\\BrunoYujiIshiyama\\Desktop"));
-//		} catch (IOException e) {
-		// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		try {
+			Connector.getInstance().awaitClients();
+		} catch (IOException e) {
+//		 TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 }
