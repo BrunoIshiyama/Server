@@ -19,14 +19,17 @@ public class Tools {
 	private int historyPos = 0;
 	//TODO save history over the commands
 	public Tools() {
+		currentPath = System.getProperty( "user.home" );
+
 //		try {
-//			Process proc = Runtime.getRuntime().exec("/bin/bash -c cd ~; pwd");
+//			Process proc = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "pwd"});
 //			String output = readStream(proc.getOutputStream());
-//			currentPath = output;
+//			System.out.println(output);
 //		} catch (IOException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
+		// TODO Change folders in a right way
 	}
 	public String readStream(OutputStream os) {
 		String s = null;
@@ -94,6 +97,9 @@ public class Tools {
 	}
 	// ls
 	public String listFiles(String path) {
+		if(path.isEmpty()) {
+			path = currentPath;
+		}
 		File f = new File(path);
 		File[] files = f.listFiles();
 		StringBuilder sb = new StringBuilder();
@@ -104,6 +110,7 @@ public class Tools {
 	}
 	//cat
 	public String readFileContent(String path) throws FileNotFoundException {
+		path = currentPath+"/"+path;
 		Scanner sc = new Scanner(new File(path));
 		StringBuilder sb = new StringBuilder();
 		while(sc.hasNext()) {
