@@ -151,7 +151,7 @@ public class Tools {
 	}
 	// shut
 	public String shutdown() {
-		return "Closing connection";
+		return "end";
 	}
 	//exec
 	public String execute(String program) throws IOException {
