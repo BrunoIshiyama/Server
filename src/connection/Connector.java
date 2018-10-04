@@ -1,3 +1,6 @@
+/*
+ * Essa classe contem o metodo main e e' responsavel por aceitar a conexao com o cliente e coloca-lo em sua propria thread de execucao
+ */
 package connection;
 
 import java.io.IOException;
@@ -9,6 +12,7 @@ import java.net.Socket;
 import actions.Tools;
 
 public class Connector {
+	// porta padrao
 	public static final int PORT = 9797;
 	private static ServerSocket serverSocket;
 	private static Connector instance;
@@ -17,12 +21,15 @@ public class Connector {
 		serverSocket = new ServerSocket(PORT);
 	}
 
+	// cria somente uma instancia de servidor
 	public static Connector getInstance() throws IOException {
 		if (instance == null)
 			return instance = new Connector();
 		return instance;
 	}
 
+	// espera a chegada de clientes e ao aceitar a conexao cria uma thread de
+	// execucao para o cliente
 	public void awaitClients() {
 		System.out.println("Awaiting Clients...");
 		new Thread(new Runnable() {
@@ -32,7 +39,7 @@ public class Connector {
 						Socket s = serverSocket.accept();
 						if (s.isConnected()) {
 							System.out.println("Client connected... " + s.getInetAddress() + ":" + s.getPort());
-
+							// thread de execucao do cliente
 							new Thread(new Runnable() {
 
 								@Override
@@ -55,6 +62,7 @@ public class Connector {
 		}).start();
 	}
 
+	// realiza o fechamento da conexao assim como o do socket
 	public void closeConnection(Socket s) {
 		try {
 			System.out.println("Closing Communication with Client: " + s.getInetAddress() + ":" + s.getLocalPort());
@@ -65,10 +73,13 @@ public class Connector {
 		}
 	}
 
+	// tarefa da execucao do cliente, isto e' pegar a mensagem enviada pelo cliente
+	// e encaminhar para a funcao correta
 	public void manageClient(Socket s1) throws IOException {
 		Socket s = s1;
 		Tools t = new Tools();
 		String oldMessage = "";
+		String oldReturn = "";
 		System.out.println("Managing  Client\'s requests");
 		LOOP: while (true) {
 			InputStream input = s.getInputStream();
@@ -103,7 +114,11 @@ public class Connector {
 					break;
 				case "exec":
 					t.saveToHistory(command);
-					result = t.execute(command[0]);
+					result = "exec command is missing an argument";
+					if(command.length>1) {
+						result = t.execute(command[1]);
+					}
+					
 					os.write(result.getBytes());
 					os.flush();
 					break;
@@ -116,7 +131,11 @@ public class Connector {
 					break LOOP;
 				case "uninstall":
 					t.saveToHistory(command);
-					result = t.uninstall(command[0]);
+					result = "uninstall command is missing an argument";
+					if(command.length>1) {
+						result = t.uninstall(command[1]);
+					}
+					
 					os.write(result.getBytes());
 					os.flush();
 					break;
@@ -128,7 +147,7 @@ public class Connector {
 					break;
 				case "mv":
 					t.saveToHistory(command);
-					result = "mv command is invalid.";
+					result = "mv command is invalid";
 					if (command.length > 2 && !command[1].isEmpty()) {
 						result = t.moveFile(command[1], command[2]);
 					}
@@ -137,6 +156,15 @@ public class Connector {
 					break;
 				case "cp":
 					t.saveToHistory(command);
+					result = "cp command is invalid";
+					if(command.length>2) {
+						String src = command[1].equals("\\.") ? t.getCurrentPath() : command[1];
+						String to = command[2].equals("\\.") ? t.getCurrentPath() : command[2];
+						result = t.copy(src, to);
+					}
+					os.write(result.getBytes());
+					os.flush();
+					
 					break;
 				case "cd":
 					t.saveToHistory(command);
@@ -152,15 +180,21 @@ public class Connector {
 					break;
 				case "install":
 					t.saveToHistory(command);
-					break;
+					result = "install command is missing an argument";
+					if(command.length>1) {
+						result = t.install(command[1]);
+					}
+					
+					os.write(result.getBytes());
+					os.flush();
 				case "ls":
 					t.saveToHistory(command);
 					result = "ls path not found";
 					if (command.length == 1) {
 						result = t.listFiles("");
-					}else if(command.length>1) {
+					} else if (command.length > 1) {
 						String path = command[1];
-						if (path.equals(".") || path.isEmpty()) {
+						if (path.equals("\\.") || path.isEmpty()) {
 							result = t.listFiles("");
 						} else {
 							result = t.listFiles(path);
@@ -169,18 +203,34 @@ public class Connector {
 					os.write(result.getBytes());
 					os.flush();
 					break;
+					//TODO
 				case "rm":
 					t.saveToHistory(command);
+					result = "rm command is invalid";
+					os.write(result.getBytes());
+					os.flush();
 					break;
 				case "touch":
 					t.saveToHistory(command);
+					result = "touch command is invalid";
+					if (command.length > 1 && !command[1].isEmpty()) {
+						result = t.createFile(command[1]);
+					}
+					os.write(result.getBytes());
+					os.flush();
 					break;
 				case "mkdir":
 					t.saveToHistory(command);
+					result = "mkdir command is invalid";
+					if (command.length > 1 && !command[1].isEmpty()) {
+						result = t.createFolder(command[1]);
+					}
+					os.write(result.getBytes());
+					os.flush();
 					break;
 				default:
 					os = s.getOutputStream();
-					result = "No Command Found";
+					result = "Command not Found";
 					os.write(result.getBytes());
 					os.flush();
 					break;

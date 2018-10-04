@@ -20,15 +20,6 @@ public class Tools {
 	//TODO save history over the commands
 	public Tools() {
 		currentPath = System.getProperty( "user.home" );
-
-//		try {
-//			Process proc = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", "pwd"});
-//			String output = readStream(proc.getOutputStream());
-//			System.out.println(output);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		// TODO Change folders in a right way
 	}
 	public String readStream(OutputStream os) {
@@ -119,7 +110,7 @@ public class Tools {
 		sc.close();
 		return sb.toString();
 	}
-	//cd
+	//cd TODO
 	public String changeDir(String path) {
 		currentPath = path;
 		return path;
@@ -148,11 +139,11 @@ public class Tools {
 	public String printWorkDir() {
 		return getCurrentPath();
 	}
-	// install
+	// install TODO
 	public String install(String program) {
 		return null;
 	}
-	// uninstall
+	// uninstall TODO
 	public String uninstall(String program) {
 		return null;
 	}
@@ -170,7 +161,7 @@ public class Tools {
 		sb.append(output);
 		return sb.toString();
 	}
-	// help
+	// help TODO
 	public String help() {
 		return null;
 	}
