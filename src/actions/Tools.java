@@ -224,11 +224,7 @@ public class Tools {
 	public String listProcesses() throws IOException {
 		Process proc = Runtime.getRuntime().exec("/bin/bash -c ps");
 		String output = readStream(proc.getInputStream());
-		currentPath = output;
 		StringBuilder sb = new StringBuilder();
-		sb.append(output);
-		output = readStream(proc.getErrorStream());
-		currentPath = output;
 		sb.append(output);
 		return sb.toString();
 	}

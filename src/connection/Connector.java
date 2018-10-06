@@ -127,7 +127,7 @@ public class Connector {
 				switch (command[0]) {
 				case "ps":
 					t.saveToHistory(command);
-					result = t.execute(command[0]);
+					result = t.listProcesses();
 					oldReturn = result;
 					send(result, os);
 					break;
