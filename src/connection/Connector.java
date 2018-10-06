@@ -10,13 +10,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import actions.Tools;
+import decryptor.Decryptor;
+import encryptor.Encryptor;
 
 public class Connector {
 	// porta padrao
 	public static final int PORT = 9797;
 	private static ServerSocket serverSocket;
 	private static Connector instance;
-
+	// valores para encriptar e desencriptar
+	long primeP = 19;
+	long primeQ = 23;
+	long keyE = 7;
+	long clientKey = 31*13;
+	long clientKeyE = 11;
+	Encryptor enc = new Encryptor(clientKey, clientKeyE);
+	Decryptor dec = new Decryptor(primeP, primeQ, keyE);
 	private Connector() throws IOException {
 		serverSocket = new ServerSocket(PORT);
 	}
@@ -41,15 +50,15 @@ public class Connector {
 							System.out.println("Client connected... " + s.getInetAddress() + ":" + s.getPort());
 							// thread de execucao do cliente
 							new Thread(new Runnable() {
-
 								@Override
 								public void run() {
 									// TODO Auto-generated method stub
 									try {
 										manageClient(s);
 									} catch (IOException e) {
-										// TODO Auto-generated catch block
 										e.printStackTrace();
+										System.out.println(
+												"Connection lost with: " + s.getInetAddress() + ":" + s.getPort());
 									}
 								}
 							}).start();
@@ -82,68 +91,79 @@ public class Connector {
 		String oldReturn = "";
 		System.out.println("Managing  Client\'s requests");
 		LOOP: while (true) {
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			InputStream input = s.getInputStream();
-			byte[] info = new byte[input.available()];
-			input.read(info);
-
-			String[] command = new String(info).split(" ");
+			String message = dec.decrypt(input);
+			OutputStream os = s.getOutputStream();
+			String[] command = message.split(" ");
 			String sw = "";
 			for (String st : command) {
 				sw += " " + st;
 			}
-			if (sw.trim().equals(oldMessage) || sw.trim().isEmpty()) {
-				continue;
+			char[] chars = sw.toCharArray();
+			// Checagem de valor em branco ou caractere nulo
+			if (sw.trim().isEmpty() || chars[0] == Character.MIN_VALUE) {
+				String keepAlive = new Character(Character.MIN_VALUE) + "";
+				os.write(keepAlive.getBytes());
+				os.flush();
+				continue LOOP;
+			}
+			// se a mensagem enviada for a mesma que a anterior entao nao processe novamente
+			if (sw.trim().equals(oldMessage)) {
+				send(oldReturn, os);
+				continue LOOP;
 			} else {
+
 				oldMessage = sw.trim();
-				System.out.println("message: \"" + sw.trim() + "\"");
-				OutputStream os = s.getOutputStream();
+				System.out
+						.println("message [" + s1.getInetAddress() + ":" + s1.getPort() + "] : \"" + sw.trim() + "\"");
+
 				String result = "";
 				switch (command[0]) {
+				case "ps":
+					t.saveToHistory(command);
+					result = t.execute(command[0]);
+					oldReturn = result;
+					send(result, os);
+					break;
 				case "history":
-					System.out.println("HISTORY");
 					t.saveToHistory(command);
 					result = t.history();
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "help":
 					t.saveToHistory(command);
 					result = t.help();
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "exec":
 					t.saveToHistory(command);
 					result = "exec command is missing an argument";
-					if(command.length>1) {
+					if (command.length > 1) {
 						result = t.execute(command[1]);
 					}
-					
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "shut":
 					t.saveToHistory(command);
 					os = s.getOutputStream();
 					result = t.shutdown();
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break LOOP;
-				case "uninstall":
-					t.saveToHistory(command);
-					result = "uninstall command is missing an argument";
-					if(command.length>1) {
-						result = t.uninstall(command[1]);
-					}
-					
-					os.write(result.getBytes());
-					os.flush();
-					break;
 				case "pwd":
 					t.saveToHistory(command);
 					result = t.printWorkDir();
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "mv":
 					t.saveToHistory(command);
@@ -151,23 +171,28 @@ public class Connector {
 					if (command.length > 2 && !command[1].isEmpty()) {
 						result = t.moveFile(command[1], command[2]);
 					}
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "cp":
 					t.saveToHistory(command);
 					result = "cp command is invalid";
-					if(command.length>2) {
+					if (command.length > 2) {
 						String src = command[1].equals("\\.") ? t.getCurrentPath() : command[1];
 						String to = command[2].equals("\\.") ? t.getCurrentPath() : command[2];
 						result = t.copy(src, to);
 					}
-					os.write(result.getBytes());
-					os.flush();
-					
+					oldReturn = result;
+					send(result, os);
+
 					break;
 				case "cd":
 					t.saveToHistory(command);
+					if (command.length > 1) {
+						result = t.changeDir(command[1]);
+					}
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "cat":
 					t.saveToHistory(command);
@@ -175,18 +200,9 @@ public class Connector {
 					if (command.length > 1 && !command[1].isEmpty()) {
 						result = t.readFileContent(command[1]);
 					}
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
-				case "install":
-					t.saveToHistory(command);
-					result = "install command is missing an argument";
-					if(command.length>1) {
-						result = t.install(command[1]);
-					}
-					
-					os.write(result.getBytes());
-					os.flush();
 				case "ls":
 					t.saveToHistory(command);
 					result = "ls path not found";
@@ -200,15 +216,20 @@ public class Connector {
 							result = t.listFiles(path);
 						}
 					}
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
-					//TODO
+				// TODO
 				case "rm":
 					t.saveToHistory(command);
 					result = "rm command is invalid";
-					os.write(result.getBytes());
-					os.flush();
+					if (command.length > 2 && command[1].equals("-r")) {
+						result = t.removeRecursively(command[2]);
+					} else if (command.length > 1) {
+						result = t.removeFile(command[1]);
+					}
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "touch":
 					t.saveToHistory(command);
@@ -216,8 +237,8 @@ public class Connector {
 					if (command.length > 1 && !command[1].isEmpty()) {
 						result = t.createFile(command[1]);
 					}
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				case "mkdir":
 					t.saveToHistory(command);
@@ -225,20 +246,27 @@ public class Connector {
 					if (command.length > 1 && !command[1].isEmpty()) {
 						result = t.createFolder(command[1]);
 					}
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				default:
-					os = s.getOutputStream();
 					result = "Command not Found";
-					os.write(result.getBytes());
-					os.flush();
+					oldReturn = result;
+					send(result, os);
 					break;
 				}
+
 			}
 		}
 
 		closeConnection(s);
+	}
+
+	public void send(String result, OutputStream os) throws IOException {
+		
+		String encrypString = enc.encrypt(result);
+		os.write(encrypString.getBytes());
+		os.flush();
 	}
 
 	public static void main(String[] args) {
