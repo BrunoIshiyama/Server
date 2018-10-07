@@ -211,12 +211,10 @@ public class Tools {
 		}
 		Process proc = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", job.trim() });
 		String output = readStream(proc.getInputStream());
-		currentPath = output;
 		StringBuilder sb = new StringBuilder();
 		sb.append("Executing " + program + "\n");
 		sb.append(output);
 		output = readStream(proc.getErrorStream());
-		currentPath = output;
 		sb.append(output);
 		return sb.toString();
 	}

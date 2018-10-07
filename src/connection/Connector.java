@@ -56,9 +56,8 @@ public class Connector {
 									try {
 										manageClient(s);
 									} catch (IOException e) {
-										e.printStackTrace();
 										System.out.println(
-												"Connection lost with: " + s.getInetAddress() + ":" + s.getPort());
+												"Connection lost with: " + s.getInetAddress() + ":" + s.getPort()+". Due to "+e.getMessage());
 									}
 								}
 							}).start();
