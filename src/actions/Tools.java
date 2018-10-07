@@ -21,7 +21,7 @@ public class Tools {
 
 	public String readStream(InputStream os) {
 		String s = null;
-		byte[] bytes = new byte[1024];
+		byte[] bytes = new byte[4096];
 		try {
 			os.read(bytes);
 		} catch (IOException e) {
