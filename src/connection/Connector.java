@@ -123,11 +123,15 @@ public class Connector {
 						.println("message [" + s1.getInetAddress() + ":" + s1.getPort() + "] : \"" + sw.trim() + "\"");
 
 				String result = "";
+				// do comando digitado selecione qual se encaixa
 				switch (command[0]) {
 				case "ps":
+					// salve no historico
 					t.saveToHistory(command);
+					//realize a acao de listagem
 					result = t.listProcesses();
 					oldReturn = result;
+					//responda ao cliente
 					send(result, os);
 					break;
 				case "history":
@@ -145,6 +149,7 @@ public class Connector {
 				case "exec":
 					t.saveToHistory(command);
 					result = "exec command is missing an argument";
+					//se houver argumentos entao execute
 					if (command.length > 1) {
 						result = t.execute(command[1]);
 					}
@@ -177,6 +182,7 @@ public class Connector {
 					t.saveToHistory(command);
 					result = "cp command is invalid";
 					if (command.length > 2) {
+						// se for digitado o . para copiar mude para o diretorio atual
 						String src = command[1].equals("\\.") ? t.getCurrentPath() : command[1];
 						String to = command[2].equals("\\.") ? t.getCurrentPath() : command[2];
 						result = t.copy(src, to);
@@ -249,6 +255,7 @@ public class Connector {
 					send(result, os);
 					break;
 				default:
+					//caso o comando nao esteja mapeado entao mande uma mensagem
 					result = "Command not Found";
 					oldReturn = result;
 					send(result, os);
@@ -260,7 +267,7 @@ public class Connector {
 
 		closeConnection(s);
 	}
-
+	// metodo para enviar as mensagens para o cliente
 	public void send(String result, OutputStream os) throws IOException {
 		
 		String encrypString = enc.encrypt(result);
