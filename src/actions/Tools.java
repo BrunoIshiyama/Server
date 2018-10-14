@@ -84,7 +84,12 @@ public class Tools {
 		try {
 			Files.delete(f.toPath());
 		} catch (IOException e) {
-			return "No such file or directory";
+			File f1 = new File(e.getMessage());
+			if (f1.isDirectory()) {
+				return "This directory have files in it, either remove them by hand or use rm -r to remove everything in this file";
+			} else {
+				return "No such file or directory ";
+			}
 		}
 		return "Removed: " + ans;
 	}
@@ -172,24 +177,65 @@ public class Tools {
 	}
 
 	// mv
-	public String moveFile(String src, String target) throws IOException {
-		copy(src, target);
-		Files.delete(new File(src).toPath());
-		return null;
+	public String moveFile(String from, String destination) {
+		String filePathFrom = from;
+		if (!from.contains(currentPath)) {
+			filePathFrom = currentPath + "/" + from;
+		}
+		String filePathDest = destination;
+		if (!destination.contains(currentPath)) {
+			filePathDest = currentPath + "/" + destination;
+		}
+		File f = new File(filePathDest);
+		if (f.isDirectory()) {
+			String[] info = from.split("/");
+			String filename = info[info.length - 1];
+			copy(from, destination + "/" + filename);
+			try {
+				Files.delete(new File(filePathFrom).toPath());
+			} catch (Exception e) {
+				return "No such file or directory";
+			}
+		} else {
+			copy(from, destination);
+			try {
+				Files.delete(new File(filePathFrom).toPath());
+			} catch (Exception e) {
+				return "No such file or directory";
+			}
+		}
+		return "File moved to: " + filePathDest;
 	}
 
 	// cp
-	public String copy(String from, String destination) throws IOException {
-		File f = new File(destination);
-		f.createNewFile();
-		File source = new File(from);
-		System.setOut(new PrintStream(f));
-		Scanner sc = new Scanner(new FileInputStream(source));
-		while (sc.hasNext()) {
-			System.out.println(sc.nextLine());
+	public String copy(String from, String destination) {
+		String filePathFrom = from;
+		if (!from.contains(currentPath)) {
+			filePathFrom = currentPath + "/" + from;
 		}
-		System.setOut(System.out);
-		sc.close();
+		String filePathDest = destination;
+		if (!destination.contains(currentPath)) {
+			filePathDest = currentPath + "/" + destination;
+		}
+		File f = new File(filePathDest);
+		try {
+			if (f.isDirectory()) {
+				String[] info = from.split("/");
+				String filename = info[info.length - 1];
+				f = new File(filePathDest + "/" + filename);
+			}
+			f.createNewFile();
+			File source = new File(filePathFrom);
+			System.setOut(new PrintStream(f));
+			Scanner sc = new Scanner(new FileInputStream(source));
+			while (sc.hasNext()) {
+				System.out.println(sc.nextLine());
+			}
+			System.setOut(System.out);
+			sc.close();
+		} catch (Exception e) {
+			return "No such file or directory";
+		}
 		return "File Copied";
 	}
 
@@ -207,12 +253,14 @@ public class Tools {
 	public String execute(String... program) throws IOException {
 		String job = "";
 		for (String p : program) {
+			if(p.equals("exec")) continue;
 			job += " " + p;
 		}
+		System.out.println(job);
 		Process proc = Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", job.trim() });
 		String output = readStream(proc.getInputStream());
 		StringBuilder sb = new StringBuilder();
-		sb.append("Executing " + program + "\n");
+		sb.append("Executing \"" + job.trim() + "\"\n");
 		sb.append(output);
 		output = readStream(proc.getErrorStream());
 		sb.append(output);
@@ -222,21 +270,6 @@ public class Tools {
 	public String listProcesses() throws IOException {
 		Process proc = Runtime.getRuntime().exec("/bin/bash -c ps");
 		String output = readStream(proc.getInputStream());
-		StringBuilder sb = new StringBuilder();
-		sb.append(output);
-		return sb.toString();
-	}
-
-	// help TODO
-	public String help() throws IOException {
-
-		Process proc = Runtime.getRuntime().exec("bash -c \"cd ~; pwd\"\n");
-		InputStream p = proc.getErrorStream();
-		byte[] bytes = new byte[p.available()];
-		p.read(bytes);
-		String output = new String(bytes);
-		System.out.println(output);
-		currentPath = output;
 		StringBuilder sb = new StringBuilder();
 		sb.append(output);
 		return sb.toString();

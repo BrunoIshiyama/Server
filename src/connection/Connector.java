@@ -90,6 +90,7 @@ public class Connector {
 		String oldReturn = "";
 		System.out.println("Managing  Client\'s requests");
 		LOOP: while (true) {
+			//De um tempo de espera para chegar a mensag
 			try {
 				Thread.sleep(200);
 			} catch (InterruptedException e) {
@@ -97,10 +98,12 @@ public class Connector {
 				e.printStackTrace();
 			}
 			InputStream input = s.getInputStream();
-			String message = dec.decrypt(input);
 			OutputStream os = s.getOutputStream();
+			// desencripte a mensagem
+			String message = dec.decrypt(input);
 			String[] command = message.split(" ");
 			String sw = "";
+			//pegue os argumentos separados per espaco nas mensagens
 			for (String st : command) {
 				sw += " " + st;
 			}
@@ -140,18 +143,12 @@ public class Connector {
 					oldReturn = result;
 					send(result, os);
 					break;
-				case "help":
-					t.saveToHistory(command);
-					result = t.help();
-					oldReturn = result;
-					send(result, os);
-					break;
 				case "exec":
 					t.saveToHistory(command);
 					result = "exec command is missing an argument";
 					//se houver argumentos entao execute
 					if (command.length > 1) {
-						result = t.execute(command[1]);
+						result = t.execute(command);
 					}
 					oldReturn = result;
 					send(result, os);
@@ -173,7 +170,9 @@ public class Connector {
 					t.saveToHistory(command);
 					result = "mv command is invalid";
 					if (command.length > 2 && !command[1].isEmpty()) {
-						result = t.moveFile(command[1], command[2]);
+						String src = command[1].equals("\\.") ? t.getCurrentPath() : command[1];
+						String to = command[2].equals("\\.") ? t.getCurrentPath() : command[2];
+						result = t.moveFile(src,to);
 					}
 					oldReturn = result;
 					send(result, os);
@@ -267,6 +266,7 @@ public class Connector {
 
 		closeConnection(s);
 	}
+
 	// metodo para enviar as mensagens para o cliente
 	public void send(String result, OutputStream os) throws IOException {
 		
